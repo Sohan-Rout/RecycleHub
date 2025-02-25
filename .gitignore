@@ -53,3 +53,4 @@ docker-compose.override.yml
 # Ignore Expo-related files if needed
 .expo/
 .expo-shared/.env
+.env
