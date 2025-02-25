@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Hugging Face API Configuration
-const HF_API_URL = process.env.HF_API_URL;
+const HF_API_URL = process.env.HF_API_URL; // Ensure this is set correctly
 const HF_API_KEY = process.env.HF_API_KEY;
 
 // Image upload and predict route
@@ -54,15 +54,26 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       }
     );
 
+    // Delete the file after processing
+    fs.unlink(imagePath, (err) => {
+      if (err) console.error("⚠️ Error deleting file:", err);
+    });
+
     // Return prediction result
     res.json({
-      message: "Image uploaded and processed!",
+      message: "✅ Image uploaded and processed successfully!",
       filename: req.file.filename,
       prediction: response.data, // Prediction result
     });
   } catch (error) {
-    console.error("❌ Prediction failed:", error);
-    res.status(500).json({ error: "Prediction failed!" });
+    console.error("❌ Prediction failed:", error.response?.data || error.message);
+    
+    // Delete the file if an error occurs
+    fs.unlink(imagePath, (err) => {
+      if (err) console.error("⚠️ Error deleting file after failure:", err);
+    });
+
+    res.status(500).json({ error: "❌ Prediction failed! Please try again." });
   }
 });
 
