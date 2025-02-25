@@ -37,9 +37,10 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     return res.status(400).json({ error: "No image uploaded!" });
   }
 
+  const imagePath = path.join("uploads", req.file.filename); // Correct path for root-level folder
+
   try {
     // Read the image file
-    const imagePath = req.file.path;
     const imageData = fs.readFileSync(imagePath);
 
     // Send image to Hugging Face API
@@ -56,28 +57,23 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
 
     // Delete the file after processing
     fs.unlink(imagePath, (err) => {
-      if (err) console.error("⚠️ Error deleting file:", err);
+      if (err) console.error("⚠️ Failed to delete file:", err);
     });
 
     // Return prediction result
     res.json({
-      message: "✅ Image uploaded and processed successfully!",
+      message: "✅ Image uploaded and processed!",
       filename: req.file.filename,
       prediction: response.data, // Prediction result
     });
   } catch (error) {
     console.error("❌ Prediction failed:", error.response?.data || error.message);
-    
-    // Delete the file if an error occurs
+
+    // Delete the file even if there's an error
     fs.unlink(imagePath, (err) => {
-      if (err) console.error("⚠️ Error deleting file after failure:", err);
+      if (err) console.error("⚠️ Failed to delete file after error:", err);
     });
 
-    res.status(500).json({ error: "❌ Prediction failed! Please try again." });
+    res.status(500).json({ error: "Prediction failed!" });
   }
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
 });
