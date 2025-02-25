@@ -9,6 +9,10 @@ const PORT = 3050;
 // Middleware
 app.use(cors()); // Enable CORS for frontend
 app.use(express.json()); // Parse JSON
+app.use(express.urlencoded({ extended: true })); // Parse form data
+
+// 📌 Serve "uploads" folder as static
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Multer setup for file storage
 const storage = multer.diskStorage({
