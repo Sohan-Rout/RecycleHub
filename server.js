@@ -37,7 +37,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     return res.status(400).json({ error: "No image uploaded!" });
   }
 
-  const imagePath = path.join("uploads", req.file.filename); // Correct path for root-level folder
+  const imagePath = path.join(__dirname, "uploads", req.file.filename); // Ensure absolute path
 
   try {
     // Read the image file
@@ -76,4 +76,9 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
 
     res.status(500).json({ error: "Prediction failed!" });
   }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
