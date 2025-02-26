@@ -5,7 +5,7 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 const fs = require("fs");
-const axios = require("axios");
+const { GoogleGenerativeAI } = require("@google/generative-ai"); // Gemini API
 
 const app = express();
 const PORT = process.env.PORT || 3050;
@@ -27,9 +27,8 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// Hugging Face API Configuration
-const HF_API_URL = process.env.HF_API_URL; // Ensure this is set correctly
-const HF_API_KEY = process.env.HF_API_KEY;
+// Google Gemini API Configuration
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Image upload and predict route
 app.post("/api/upload", upload.single("image"), async (req, res) => {
@@ -37,39 +36,39 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     return res.status(400).json({ error: "No image uploaded!" });
   }
 
-  const imagePath = path.join(__dirname, "uploads", req.file.filename); // Ensure absolute path
+  const imagePath = path.join(__dirname, "uploads", req.file.filename);
+  const imageBase64 = fs.readFileSync(imagePath, { encoding: "base64" });
 
   try {
-    // Read the image file
-    const imageData = fs.readFileSync(imagePath);
-
-    // Send image to Hugging Face API
-    const response = await axios.post(
-      HF_API_URL,
-      imageData,
-      {
-        headers: {
-          Authorization: `Bearer ${HF_API_KEY}`,
-          "Content-Type": "application/octet-stream",
+    // Call Gemini Vision API
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use Gemini 1.5
+    const result = await model.generateContent({
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: "Classify this waste material and determine if it's recyclable." },
+            { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
+          ],
         },
-      }
-    );
+      ],
+    });
 
-    // Delete the file after processing
+    const prediction = result.response.candidates[0]?.content?.parts[0]?.text || "No prediction available.";
+
+    // Delete the uploaded image after processing
     fs.unlink(imagePath, (err) => {
       if (err) console.error("⚠️ Failed to delete file:", err);
     });
 
-    // Return prediction result
     res.json({
       message: "✅ Image uploaded and processed!",
       filename: req.file.filename,
-      prediction: response.data, // Prediction result
+      prediction,
     });
   } catch (error) {
-    console.error("❌ Prediction failed:", error.response?.data || error.message);
+    console.error("❌ Prediction failed:", error);
 
-    // Delete the file even if there's an error
     fs.unlink(imagePath, (err) => {
       if (err) console.error("⚠️ Failed to delete file after error:", err);
     });
