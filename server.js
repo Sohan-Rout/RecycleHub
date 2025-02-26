@@ -65,6 +65,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       message: "✅ Image uploaded and processed!",
       filename: req.file.filename,
       prediction,
+      classification,
     });
   } catch (error) {
     console.error("❌ Prediction failed:", error);
