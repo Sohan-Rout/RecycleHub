@@ -30,6 +30,18 @@ const upload = multer({ storage: storage });
 // Google Gemini API Configuration
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// Function to clean the prediction text
+function formatPrediction(prediction) {
+  // Remove unwanted characters like \n, *, and extra spaces
+  let cleanedText = prediction
+    .replace(/\n/g, " ") // Replace newlines with spaces
+    .replace(/\*/g, "") // Remove asterisks
+    .replace(/\s+/g, " ") // Replace multiple spaces with a single space
+    .trim(); // Remove leading/trailing spaces
+
+  return cleanedText;
+}
+
 // Image upload and predict route
 app.post("/api/upload", upload.single("image"), async (req, res) => {
   if (!req.file) {
@@ -54,7 +66,10 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       ],
     });
 
-    const prediction = result.response.candidates[0]?.content?.parts[0]?.text || "No prediction available.";
+    const rawPrediction = result.response.candidates[0]?.content?.parts[0]?.text || "No prediction available.";
+
+    // Clean the prediction text
+    const cleanedPrediction = formatPrediction(rawPrediction);
 
     // Delete the uploaded image after processing
     fs.unlink(imagePath, (err) => {
@@ -62,9 +77,9 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     });
 
     res.json({
-      message: "✅ Image uploaded and processed!",
+      message: "Here is the analysis Result!",
       filename: req.file.filename,
-      prediction,
+      prediction: cleanedPrediction, // Send the cleaned prediction
     });
   } catch (error) {
     console.error("❌ Prediction failed:", error);
