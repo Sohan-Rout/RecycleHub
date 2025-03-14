@@ -53,7 +53,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
 
   try {
     // Call Gemini Vision API
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Use Gemini 1.5
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" }); // Use Gemini 1.5
     const result = await model.generateContent({
       contents: [
         {
