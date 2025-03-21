@@ -6,7 +6,8 @@ const path = require("path");
 const cors = require("cors");
 const fs = require("fs");
 const mongoose = require("mongoose");
-const { GoogleGenerativeAI } = require("@google/generative-ai"); // Gemini API
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+// const axios = require("axios"); // Commented out since we're using test data
 
 const app = express();
 const PORT = process.env.PORT || 3050;
@@ -14,7 +15,7 @@ const PORT = process.env.PORT || 3050;
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static("uploads")); // Serve uploaded files
+app.use(express.static("uploads"));
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
@@ -68,7 +69,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
         {
           role: "user",
           parts: [
-            { 
+            {
               text: `Classify this waste material and determine if it's recyclable.
                      Return **only** JSON in the following format (no additional text):
 
@@ -77,7 +78,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
                        "waste_material": "Material Name",
                        "recyclable": "Yes/No",
                        "guidelines": "Short recycling instructions"
-                     }`
+                     }`,
             },
             { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
           ],
@@ -86,8 +87,6 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     });
 
     let rawPrediction = result.response.candidates[0]?.content?.parts[0]?.text || "{}";
-
-    // ✅ Remove Markdown formatting (` ```json ... ``` `)
     rawPrediction = rawPrediction.replace(/```json|```/g, "").trim();
 
     let parsedPrediction;
@@ -108,15 +107,13 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
       classification: parsedPrediction.classification || "Unknown",
       waste_material: parsedPrediction.waste_material || "Unknown",
       recyclable: parsedPrediction.recyclable || "Unknown",
-      guidelines: parsedPrediction.guidelines || "No guidelines available."
+      guidelines: parsedPrediction.guidelines || "No guidelines available.",
     });
-
   } catch (error) {
     console.error("❌ Prediction failed:", error);
     fs.unlink(imagePath, (err) => {
       if (err) console.error("⚠️ Failed to delete file after error:", err);
     });
-
     res.status(500).json({ error: "Prediction failed!" });
   }
 });
@@ -149,6 +146,56 @@ app.get("/api/products", async (req, res) => {
   } catch (error) {
     console.error("❌ Failed to fetch products:", error);
     res.status(500).json({ error: "Failed to fetch products." });
+  }
+});
+
+// API to fetch nearby recycle points
+app.get("/api/recycle-points", async (req, res) => {
+  const { lat, lng } = req.query; // Expect latitude and longitude from the client
+
+  if (!lat || !lng) {
+    return res.status(400).json({ error: "Latitude and longitude are required." });
+  }
+
+  try {
+    // Test data for recycle points (San Francisco area as an example)
+    const testRecyclePoints = [
+      { id: "test1", name: "Recycle Center A", latitude: 37.7749, longitude: -122.4194 },
+      { id: "test2", name: "Recycle Center B", latitude: 37.7849, longitude: -122.4294 },
+      { id: "test3", name: "Recycle Center C", latitude: 37.7649, longitude: -122.4094 },
+    ];
+
+    res.json(testRecyclePoints);
+
+    /* 
+     * Uncomment the block below to use Google Places API instead of test data
+     * Requires: npm install axios, GOOGLE_PLACES_API_KEY in .env
+     */
+    /*
+    const response = await axios.get(
+      "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
+      {
+        params: {
+          location: `${lat},${lng}`,
+          radius: 5000, // Search within 5km radius
+          keyword: "recycling center", // Search for recycling centers
+          key: process.env.GOOGLE_PLACES_API_KEY,
+        },
+      }
+    );
+
+    const recyclePoints = response.data.results.map((place, index) => ({
+      id: place.place_id,
+      name: place.name,
+      latitude: place.geometry.location.lat,
+      longitude: place.geometry.location.lng,
+    }));
+
+    res.json(recyclePoints);
+    */
+  } catch (error) {
+    console.error("❌ Failed to fetch recycle points:", error);
+    res.status(500).json({ error: "Failed to fetch recycle points." });
   }
 });
 
