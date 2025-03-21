@@ -53,13 +53,14 @@ function formatPrediction(prediction) {
   return prediction.replace(/\n/g, " ").replace(/\*/g, "").replace(/\s+/g, " ").trim();
 }
 
-// Image upload and predict route
 app.post("/api/upload", upload.single("image"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "No image uploaded!" });
   }
+
   const imagePath = path.join(__dirname, "uploads", req.file.filename);
   const imageBase64 = fs.readFileSync(imagePath, { encoding: "base64" });
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
     const result = await model.generateContent({
@@ -67,23 +68,55 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
         {
           role: "user",
           parts: [
-            { text: "Classify this waste material and determine if it's recyclable." },
+            { 
+              text: `Classify this waste material and determine if it's recyclable.
+                     Return **only** JSON in the following format (no additional text):
+
+                     {
+                       "classification": "Type of Waste",
+                       "waste_material": "Material Name",
+                       "recyclable": "Yes/No",
+                       "guidelines": "Short recycling instructions"
+                     }`
+            },
             { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
           ],
         },
       ],
     });
-    const rawPrediction = result.response.candidates[0]?.content?.parts[0]?.text || "No prediction available.";
-    const cleanedPrediction = formatPrediction(rawPrediction);
+
+    let rawPrediction = result.response.candidates[0]?.content?.parts[0]?.text || "{}";
+
+    // ✅ Remove Markdown formatting (` ```json ... ``` `)
+    rawPrediction = rawPrediction.replace(/```json|```/g, "").trim();
+
+    let parsedPrediction;
+    try {
+      parsedPrediction = JSON.parse(rawPrediction);
+    } catch (parseError) {
+      console.error("❌ JSON Parse Error:", parseError);
+      return res.status(500).json({ error: "Failed to parse AI response." });
+    }
+
     fs.unlink(imagePath, (err) => {
       if (err) console.error("⚠️ Failed to delete file:", err);
     });
-    res.json({ message: "Here is the analysis Result!", filename: req.file.filename, cleanedPrediction });
+
+    res.json({
+      message: "Here is the analysis Result!",
+      filename: req.file.filename,
+      classification: parsedPrediction.classification || "Unknown",
+      waste_material: parsedPrediction.waste_material || "Unknown",
+      recyclable: parsedPrediction.recyclable || "Unknown",
+      guidelines: parsedPrediction.guidelines || "No guidelines available."
+    });
+
   } catch (error) {
     console.error("❌ Prediction failed:", error);
     fs.unlink(imagePath, (err) => {
       if (err) console.error("⚠️ Failed to delete file after error:", err);
     });
+
     res.status(500).json({ error: "Prediction failed!" });
   }
 });
