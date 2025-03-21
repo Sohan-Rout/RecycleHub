@@ -19,7 +19,6 @@ app.use(express.static("uploads")); // Serve uploaded files
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true,
 });
 
 const db = mongoose.connection;
@@ -79,7 +78,7 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
     fs.unlink(imagePath, (err) => {
       if (err) console.error("⚠️ Failed to delete file:", err);
     });
-    res.json({ message: "Here is the analysis Result!", filename: req.file.filename, prediction: cleanedPrediction });
+    res.json({ message: "Here is the analysis Result!", filename: req.file.filename, cleanedPrediction });
   } catch (error) {
     console.error("❌ Prediction failed:", error);
     fs.unlink(imagePath, (err) => {
