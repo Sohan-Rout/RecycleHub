@@ -14,7 +14,8 @@ async function classifyImage(imagePath) {
         // Read image file and encode it in base64
         const imageData = fs.readFileSync(imagePath, { encoding: "base64" });
 
-        const prompt = "Analyze this image and classify the waste material.";
+        // Short and concise prompt
+        const prompt = "Analyze this image and classify the type of waste material in a short and precise manner (e.g., 'Plastic', 'Organic', 'E-waste').";
 
         // Gemini API call
         const result = await model.generateContent([
@@ -25,7 +26,7 @@ async function classifyImage(imagePath) {
         const response = await result.response;
         const text = response.text();
 
-        console.log("Response:", text);
+        console.log("Short Classification:", text);
         return text;
     } catch (error) {
         console.error("Error:", error);
