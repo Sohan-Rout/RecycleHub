@@ -158,6 +158,7 @@ app.get("/api/recycle-points", async (req, res) => {
   }
 
   try {
+    /*
     // Test data for recycle points (San Francisco area as an example)
     const testRecyclePoints = [
       { id: "test1", name: "Recycle Center A", latitude: 37.7749, longitude: -122.4194 },
@@ -165,13 +166,8 @@ app.get("/api/recycle-points", async (req, res) => {
       { id: "test3", name: "Recycle Center C", latitude: 37.7649, longitude: -122.4094 },
     ];
 
-    res.json(testRecyclePoints);
+    res.json(testRecyclePoints);*/
 
-    /* 
-     * Uncomment the block below to use Google Places API instead of test data
-     * Requires: npm install axios, GOOGLE_PLACES_API_KEY in .env
-     */
-    /*
     const response = await axios.get(
       "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
       {
@@ -192,7 +188,6 @@ app.get("/api/recycle-points", async (req, res) => {
     }));
 
     res.json(recyclePoints);
-    */
   } catch (error) {
     console.error("❌ Failed to fetch recycle points:", error);
     res.status(500).json({ error: "Failed to fetch recycle points." });
