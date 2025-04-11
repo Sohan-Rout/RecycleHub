@@ -8,7 +8,6 @@ const cors = require("cors");
 const fs = require("fs");
 const mongoose = require("mongoose");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-// const axios = require("axios"); // Commented out since we're using test data
 
 const app = express();
 const PORT = process.env.PORT || 3050;
@@ -185,18 +184,22 @@ app.get("/api/recycle-points", async (req, res) => {
   }
 });
 
-// Carbon calculator Api
-app.get("/api/carbon", async (req, res) => {
+app.post("/api/carbon", async (req, res) => {
   try {
-    const response = await axios.get("https://api.magicapi.dev/api/v1/carbonsutra/carbon", {
-      headers: {
-        "x-magicapi-key": process.env.MAGIC_API_KEY,  // your key from .env
-      },
-    });
+    const response = await axios.post(
+      "https://api.magicapi.dev/api/v1/carbonsutra/carbon/api/v1/flight_estimate",
+      req.body, // Forwarding frontend data
+      {
+        headers: {
+          "x-magicapi-key": process.env.MAGIC_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    res.json(response.data);  // send the response to frontend
+    res.json(response.data);
   } catch (error) {
-    console.error("Error fetching Carbon data:", error);
+    console.error("Error fetching Carbon data:", error.response?.data || error.message);
     res.status(500).json({ error: "Failed to fetch Carbon data" });
   }
 });
