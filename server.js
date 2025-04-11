@@ -208,23 +208,25 @@ app.post("/api/carbon", async (req, res) => {
 // eco-friendly news api
 app.get("/api/eco-news", async (req, res) => {
   try {
+    const { text, categories, language } = req.query;
+
     const response = await axios.get(
       "https://api.marketapi.dev/api/v1/skycraft/world-news-api/search-news",
       {
         params: {
-          text: "eco OR environment OR sustainable OR climate OR green",
-          categories: "environment",
-          language: "en",
+          text: text || "eco OR environment OR sustainable OR climate OR green",
+          categories: categories || "environment",
+          language: language || "en",
         },
         headers: {
-          "x-marketapi-key": process.env.MARKET_API_KEY, // your API key from env
+          "x-marketapi-key": process.env.MARKET_API_KEY,
         },
       }
     );
 
     res.status(200).json(response.data);
   } catch (error) {
-    console.error("Eco News API Error:", error.response?.data || error.message);
+    console.error("Eco News API Error:", error?.response?.data || error.message);
     res.status(500).json({ error: "Failed to fetch Eco News" });
   }
 });
