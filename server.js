@@ -159,16 +159,6 @@ app.get("/api/recycle-points", async (req, res) => {
   }
 
   try {
-    /*
-    // Test data for recycle points (San Francisco area as an example)
-    const testRecyclePoints = [
-      { id: "test1", name: "Recycle Center A", latitude: 37.7749, longitude: -122.4194 },
-      { id: "test2", name: "Recycle Center B", latitude: 37.7849, longitude: -122.4294 },
-      { id: "test3", name: "Recycle Center C", latitude: 37.7649, longitude: -122.4094 },
-    ];
-
-    res.json(testRecyclePoints);*/
-
     const response = await axios.get(
       "https://maps.googleapis.com/maps/api/place/nearbysearch/json",
       {
@@ -192,6 +182,22 @@ app.get("/api/recycle-points", async (req, res) => {
   } catch (error) {
     console.error("❌ Failed to fetch recycle points:", error);
     res.status(500).json({ error: "Failed to fetch recycle points." });
+  }
+});
+
+// Carbon calculator Api
+app.get("/api/carbon", async (req, res) => {
+  try {
+    const response = await axios.get("https://api.magicapi.dev/api/v1/carbonsutra/carbon", {
+      headers: {
+        "x-magicapi-key": process.env.MAGIC_API_KEY,  // your key from .env
+      },
+    });
+
+    res.json(response.data);  // send the response to frontend
+  } catch (error) {
+    console.error("Error fetching Carbon data:", error);
+    res.status(500).json({ error: "Failed to fetch Carbon data" });
   }
 });
 
