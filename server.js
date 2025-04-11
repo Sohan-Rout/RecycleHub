@@ -209,15 +209,15 @@ app.post("/api/carbon", async (req, res) => {
 app.get("/api/eco-news", async (req, res) => {
   try {
     const response = await axios.get(
-      "https://api.market/store/skycraft/world-news-api/search-news",
+      "https://api.marketapi.dev/api/v1/skycraft/world-news-api/search-news",
       {
         params: {
-          text: "eco OR environment OR sustainable OR climate OR green", // search text
-          categories: "environment", // specific category
-          language: "en", // English news
+          text: "eco OR environment OR sustainable OR climate OR green",
+          categories: "environment",
+          language: "en",
         },
         headers: {
-          "x-marketapi-key": process.env.MARKET_API_KEY,
+          "x-marketapi-key": process.env.MARKET_API_KEY, // your API key from env
         },
       }
     );
