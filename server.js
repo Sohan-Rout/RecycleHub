@@ -184,11 +184,12 @@ app.get("/api/recycle-points", async (req, res) => {
   }
 });
 
+// carbon api
 app.post("/api/carbon", async (req, res) => {
   try {
     const response = await axios.post(
-      "https://api.magicapi.dev/api/v1/carbonsutra/carbon/api/v1/flight_estimate",
-      req.body, // Forwarding frontend data
+      "https://api.magicapi.dev/api/v1/carbonsutra/carbon/api/v1/vehicle_estimate_by_type",
+      req.body, // whatever frontend sends will go to API
       {
         headers: {
           "x-magicapi-key": process.env.MAGIC_API_KEY,
@@ -197,9 +198,9 @@ app.post("/api/carbon", async (req, res) => {
       }
     );
 
-    res.json(response.data);
+    res.status(200).json(response.data);
   } catch (error) {
-    console.error("Error fetching Carbon data:", error.response?.data || error.message);
+    console.error("Carbon API Error:", error.response?.data || error.message);
     res.status(500).json({ error: "Failed to fetch Carbon data" });
   }
 });
