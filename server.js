@@ -219,7 +219,7 @@ app.get("/api/eco-news", async (req, res) => {
           language: language || "en",
         },
         headers: {
-          "x-marketapi-key": process.env.MARKET_API_KEY,
+          "x-marketapi-key": process.env.MAGIC_API_KEY,
         },
       }
     );
