@@ -205,6 +205,30 @@ app.post("/api/carbon", async (req, res) => {
   }
 });
 
+// eco-friendly news api
+app.get("/api/eco-news", async (req, res) => {
+  try {
+    const response = await axios.get(
+      "https://api.market/store/skycraft/world-news-api/search-news",
+      {
+        params: {
+          text: "eco OR environment OR sustainable OR climate OR green", // search text
+          categories: "environment", // specific category
+          language: "en", // English news
+        },
+        headers: {
+          "x-marketapi-key": process.env.MARKET_API_KEY,
+        },
+      }
+    );
+
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error("Eco News API Error:", error.response?.data || error.message);
+    res.status(500).json({ error: "Failed to fetch Eco News" });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
