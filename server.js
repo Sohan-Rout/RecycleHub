@@ -225,7 +225,7 @@ app.get("/api/eco-news", async (req, res) => {
 
     res.status(200).json(response.data);
   } catch (error) {
-    console.error("Eco News API Error:", error.response?.data || error.message);
+    console.error("Eco News API Error:", error);
     res.status(500).json({ error: "Failed to fetch Eco News" });
   }
 });
