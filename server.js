@@ -206,7 +206,6 @@ app.post("/api/carbon", async (req, res) => {
 });
 
 // eco-friendly news api
-// Eco-Friendly News API
 app.get("/api/eco-news", async (req, res) => {
   try {
     const response = await axios.get(
@@ -218,14 +217,14 @@ app.get("/api/eco-news", async (req, res) => {
           language: "en",
         },
         headers: {
-          "x-api-key": process.env.MAGIC_API_KEY, // Check your correct API Key
+          "x-api-key": process.env.MAGIC_API_KEY, // your api key here
         },
       }
     );
 
     res.status(200).json(response.data);
   } catch (error) {
-    console.error("Eco News API Error:", error);
+    console.error("Eco News API Error:", error.response?.data || error.message);
     res.status(500).json({ error: "Failed to fetch Eco News" });
   }
 });
